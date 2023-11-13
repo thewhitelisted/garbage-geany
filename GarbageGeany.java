@@ -95,13 +95,18 @@ public class GarbageGeany implements ActionListener {
     // compile file, thank god for JavaCompiler
     void compileFile() {
         saveFile();
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        compiler.run(null, null, null, path);
+        if (this.path != "") {
+            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+            compiler.run(null, null, null, path);
+        }
     }
 
     // run file, you need to make sure you're compiling first
     void runFile() {
         compileFile();
+        if (this.path == "") {
+            return;
+        }
         ProcessBuilder runfile = new ProcessBuilder();
         // determine which command to run based on the os
         if (isWindows) {
