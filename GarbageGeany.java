@@ -48,6 +48,8 @@ public class GarbageGeany implements ActionListener {
     // fileio management
     JFileChooser filechooser = new JFileChooser();
     String path = "";
+    String parent_path = "";
+    String file_name = "";
     String current_line;
 
     // actionListener stuff
@@ -58,6 +60,8 @@ public class GarbageGeany implements ActionListener {
                 this.textarea.setText("");
                 try {
                     this.path = this.filechooser.getSelectedFile().getPath();
+                    this.file_name = this.filechooser.getSelectedFile().getName();
+                    this.parent_path = this.filechooser.getSelectedFile().getParent();
                     BufferedReader openfile = new BufferedReader(new FileReader(path));
                     this.current_line = openfile.readLine();
                     this.textarea.append(current_line);
@@ -104,6 +108,8 @@ public class GarbageGeany implements ActionListener {
         if (this.filechooser.showSaveDialog(this.frame) == JFileChooser.APPROVE_OPTION) {
             try {
                 this.path = this.filechooser.getSelectedFile().getPath();
+                this.file_name = this.filechooser.getSelectedFile().getName();
+                this.parent_path = this.filechooser.getSelectedFile().getParent();
                 PrintWriter outfile = new PrintWriter(new FileWriter(this.path));
                 outfile.println(this.textarea.getText());
                 outfile.close();
@@ -130,9 +136,9 @@ public class GarbageGeany implements ActionListener {
         ProcessBuilder runfile = new ProcessBuilder();
         // determine which command to run based on the os
         if (isWindows) {
-            runfile.command("cmd.exe", "/c", "java " + path);
+            runfile.command("cmd.exe", "/c", "java -cp " + parent_path + " " + file_name.substring(0, file_name.lastIndexOf(".java")));
         } else {
-            runfile.command("sh", "-c", "java " + path);
+            runfile.command("sh", "-c", "java -cp " + path);
         }
 
         // start the process and then close the stream when finished.
