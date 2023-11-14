@@ -6,10 +6,15 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import javax.swing.JScrollPane;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -22,7 +27,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 // main class
-public class GarbageGeany implements ActionListener {
+public class GarbageGeany implements ActionListener, UndoableEditListener {
     // to see which os you're running.
     private static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
@@ -40,6 +45,12 @@ public class GarbageGeany implements ActionListener {
     JMenuItem saveitem = new JMenuItem("Save");
     JMenuItem closeitem = new JMenuItem("Close");
 
+    // menu items relating to edit
+    JMenu editmenu = new JMenu("Edit");
+    JMenuItem undoitem = new JMenuItem("Undo");
+    JMenuItem redoitem = new JMenuItem("Redo");
+    UndoManager undoer = new UndoManager();
+
     // menu items relating to code
     JMenu codemenu = new JMenu("Code");
     JMenuItem compileitem = new JMenuItem("Compile");
@@ -53,6 +64,7 @@ public class GarbageGeany implements ActionListener {
     String current_line;
 
     // actionListener stuff
+    @Override
     public void actionPerformed(ActionEvent evt) {
         // open file, pretty basic stuff
         if (evt.getSource() == this.openitem) {
@@ -87,7 +99,24 @@ public class GarbageGeany implements ActionListener {
         } else if (evt.getSource() == this.closeitem) {
             this.textarea.setText("");
             this.path = "";
+            // undo item, use undo manager
+        } else if (evt.getSource() == this.undoitem) {
+            try {
+                this.undoer.undo();
+            } catch (CannotUndoException e) {
+            }
+        } else if (evt.getSource() == this.redoitem) {
+            try {
+                this.undoer.redo();
+            } catch (CannotUndoException e) {
+            }
         }
+    }
+
+    // Undo edit listener
+    @Override
+    public void undoableEditHappened(UndoableEditEvent e) {
+        undoer.addEdit(e.getEdit());
     }
 
     // save file function
@@ -136,7 +165,8 @@ public class GarbageGeany implements ActionListener {
         ProcessBuilder runfile = new ProcessBuilder();
         // determine which command to run based on the os
         if (isWindows) {
-            runfile.command("cmd.exe", "/c", "java -cp " + parent_path + " " + file_name.substring(0, file_name.lastIndexOf(".java")));
+            runfile.command("cmd.exe", "/c",
+                    "java -cp " + parent_path + " " + file_name.substring(0, file_name.lastIndexOf(".java")));
         } else {
             runfile.command("sh", "-c", "java -cp " + path);
         }
@@ -180,21 +210,43 @@ public class GarbageGeany implements ActionListener {
 
         // filemenu stuff
         this.menubar.add(filemenu);
+        this.filemenu.setMnemonic(KeyEvent.VK_F);
         this.filemenu.add(openitem);
+        this.openitem.setMnemonic(KeyEvent.VK_O);
         this.filemenu.add(saveitem);
+        this.saveitem.setMnemonic(KeyEvent.VK_S);
         this.filemenu.add(closeitem);
+        this.closeitem.setMnemonic(KeyEvent.VK_C);
+
+        // editmenu stuff
+        this.menubar.add(editmenu);
+        this.editmenu.setMnemonic(KeyEvent.VK_E);
+        this.editmenu.add(undoitem);
+        this.undoitem.setMnemonic(KeyEvent.VK_U);
+        this.editmenu.add(redoitem);
+        this.undoitem.setMnemonic(KeyEvent.VK_R);
 
         // codemenu stuff
         this.menubar.add(codemenu);
+        this.codemenu.setMnemonic(KeyEvent.VK_C);
         this.codemenu.add(compileitem);
+        this.compileitem.setMnemonic(KeyEvent.VK_E);
         this.codemenu.add(runitem);
+        this.runitem.setMnemonic(KeyEvent.VK_R);
 
         // adding actionlisteners
         this.openitem.addActionListener(this);
         this.saveitem.addActionListener(this);
         this.closeitem.addActionListener(this);
+
+        this.undoitem.addActionListener(this);
+        this.redoitem.addActionListener(this);
+
         this.compileitem.addActionListener(this);
         this.runitem.addActionListener(this);
+
+        // undo listener
+        this.textarea.getDocument().addUndoableEditListener(undoer);
 
         // frame stuff
         this.frame.setJMenuBar(menubar);
