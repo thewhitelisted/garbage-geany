@@ -45,8 +45,10 @@ public class GarbageGeany implements ActionListener {
                     path = filechooser.getSelectedFile().getPath();
                     BufferedReader openfile = new BufferedReader(new FileReader(path));
                     current_line = openfile.readLine();
+                    textarea.append(current_line);
+                    current_line = openfile.readLine();
                     while (current_line != null) {
-                        textarea.append(current_line + "\n");
+                        textarea.append("\n" + current_line);
                         current_line = openfile.readLine();
                     }
                     openfile.close();
