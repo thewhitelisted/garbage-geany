@@ -75,7 +75,7 @@ public class GarbageGeany implements ActionListener {
     // save file function
     void saveFile() {
         // if the path is not empty then we can save to the current file
-        if (path != "") {
+        if (this.path != "") {
             try {
                 PrintWriter outfile = new PrintWriter(new FileWriter(path));
                 outfile.println(textarea.getText());
@@ -100,16 +100,16 @@ public class GarbageGeany implements ActionListener {
 
     // compile file, thank god for JavaCompiler
     void compileFile() {
-        saveFile();
+        this.saveFile();
         if (this.path != "") {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            compiler.run(null, null, null, path);
+            compiler.run(null, null, null, this.path);
         }
     }
 
     // run file, you need to make sure you're compiling first
     void runFile() {
-        compileFile();
+        this.compileFile();
         if (this.path == "") {
             return;
         }
@@ -153,35 +153,35 @@ public class GarbageGeany implements ActionListener {
     // constructor
     GarbageGeany() {
         // text pane
-        scroll.setPreferredSize(new Dimension(600, 600));
+        this.scroll.setPreferredSize(new Dimension(600, 600));
 
         // change tab size, I like it better like this
-        textarea.setTabSize(2);
+        this.textarea.setTabSize(2);
 
         // filemenu stuff
-        menubar.add(filemenu);
-        filemenu.add(openitem);
-        filemenu.add(saveitem);
-        filemenu.add(closeitem);
+        this.menubar.add(filemenu);
+        this.filemenu.add(openitem);
+        this.filemenu.add(saveitem);
+        this.filemenu.add(closeitem);
 
         // codemenu stuff
-        menubar.add(codemenu);
-        codemenu.add(compileitem);
-        codemenu.add(runitem);
+        this.menubar.add(codemenu);
+        this.codemenu.add(compileitem);
+        this.codemenu.add(runitem);
 
         // adding actionlisteners
-        openitem.addActionListener(this);
-        saveitem.addActionListener(this);
-        closeitem.addActionListener(this);
-        compileitem.addActionListener(this);
-        runitem.addActionListener(this);
+        this.openitem.addActionListener(this);
+        this.saveitem.addActionListener(this);
+        this.closeitem.addActionListener(this);
+        this.compileitem.addActionListener(this);
+        this.runitem.addActionListener(this);
 
         // frame stuff
-        frame.setJMenuBar(menubar);
-        frame.setContentPane(scroll);
-        frame.pack();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        this.frame.setJMenuBar(menubar);
+        this.frame.setContentPane(scroll);
+        this.frame.pack();
+        this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.frame.setVisible(true);
     }
 
     // main method
