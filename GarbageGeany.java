@@ -24,6 +24,7 @@ public class GarbageGeany implements ActionListener {
     JMenu filemenu = new JMenu("File");
     JMenuItem openitem = new JMenuItem("Open");
     JMenuItem saveitem = new JMenuItem("Save");
+    JMenuItem closeitem = new JMenuItem("Close");
 
     // menu items relating to code
     JMenu codemenu = new JMenu("Code");
@@ -38,33 +39,36 @@ public class GarbageGeany implements ActionListener {
     // actionListener stuff
     public void actionPerformed(ActionEvent evt) {
         // open file, pretty basic stuff
-        if (evt.getSource() == openitem) {
-            if (filechooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                textarea.setText("");
+        if (evt.getSource() == this.openitem) {
+            if (this.filechooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                this.textarea.setText("");
                 try {
-                    path = filechooser.getSelectedFile().getPath();
+                    this.path = this.filechooser.getSelectedFile().getPath();
                     BufferedReader openfile = new BufferedReader(new FileReader(path));
-                    current_line = openfile.readLine();
-                    textarea.append(current_line);
-                    current_line = openfile.readLine();
+                    this.current_line = openfile.readLine();
+                    this.textarea.append(current_line);
+                    this.current_line = openfile.readLine();
                     while (current_line != null) {
-                        textarea.append("\n" + current_line);
-                        current_line = openfile.readLine();
+                        this.textarea.append("\n" + current_line);
+                        this.current_line = openfile.readLine();
                     }
                     openfile.close();
                 } catch (IOException e) {
                 }
             }
             // save item, see subsequent function
-        } else if (evt.getSource() == saveitem) {
-            saveFile();
+        } else if (evt.getSource() == this.saveitem) {
+            this.saveFile();
             // compile item, see subsequent function
-        } else if (evt.getSource() == compileitem) {
-            compileFile();
+        } else if (evt.getSource() == this.compileitem) {
+            this.compileFile();
             // run item, see subsequent function
-        } else if (evt.getSource() == runitem) {
-            runFile();
-
+        } else if (evt.getSource() == this.runitem) {
+            this.runFile();
+            // close item, reset text area and path link
+        } else if (evt.getSource() == this.closeitem) {
+            this.textarea.setText("");
+            this.path = "";
         }
     }
 
@@ -158,6 +162,7 @@ public class GarbageGeany implements ActionListener {
         menubar.add(filemenu);
         filemenu.add(openitem);
         filemenu.add(saveitem);
+        filemenu.add(closeitem);
 
         // codemenu stuff
         menubar.add(codemenu);
@@ -167,6 +172,7 @@ public class GarbageGeany implements ActionListener {
         // adding actionlisteners
         openitem.addActionListener(this);
         saveitem.addActionListener(this);
+        closeitem.addActionListener(this);
         compileitem.addActionListener(this);
         runitem.addActionListener(this);
 
