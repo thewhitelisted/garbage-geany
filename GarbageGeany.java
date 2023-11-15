@@ -6,6 +6,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.CannotUndoException;
@@ -213,6 +214,7 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
         this.filemenu.setMnemonic(KeyEvent.VK_F);
         this.filemenu.add(openitem);
         this.openitem.setMnemonic(KeyEvent.VK_O);
+        this.openitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
         this.filemenu.add(saveitem);
         this.saveitem.setMnemonic(KeyEvent.VK_S);
         this.filemenu.add(closeitem);
