@@ -28,41 +28,41 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 // main class
-public class GarbageGeany implements ActionListener, UndoableEditListener {
+final public class GarbageGeany implements ActionListener, UndoableEditListener {
     // to see which os you're running.
     private static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
     // frame and main interface
-    JFrame frame = new JFrame("Garbage Geany");
-    JTextArea textarea = new JTextArea();
-    JScrollPane scroll = new JScrollPane(textarea);
+    private JFrame frame = new JFrame("Garbage Geany");
+    private JTextArea textarea = new JTextArea();
+    private JScrollPane scroll = new JScrollPane(textarea);
 
     // menu bar
-    JMenuBar menubar = new JMenuBar();
+    private JMenuBar menubar = new JMenuBar();
 
     // menu items relating to file
-    JMenu filemenu = new JMenu("File");
-    JMenuItem openitem = new JMenuItem("Open");
-    JMenuItem saveitem = new JMenuItem("Save");
-    JMenuItem closeitem = new JMenuItem("Close");
+    private JMenu filemenu = new JMenu("File");
+    private JMenuItem openitem = new JMenuItem("Open");
+    private JMenuItem saveitem = new JMenuItem("Save");
+    private JMenuItem closeitem = new JMenuItem("Close");
 
     // menu items relating to edit
-    JMenu editmenu = new JMenu("Edit");
-    JMenuItem undoitem = new JMenuItem("Undo");
-    JMenuItem redoitem = new JMenuItem("Redo");
-    UndoManager undoer = new UndoManager();
+    private JMenu editmenu = new JMenu("Edit");
+    private JMenuItem undoitem = new JMenuItem("Undo");
+    private JMenuItem redoitem = new JMenuItem("Redo");
+    private UndoManager undoer = new UndoManager();
 
     // menu items relating to code
-    JMenu codemenu = new JMenu("Code");
-    JMenuItem compileitem = new JMenuItem("Compile");
-    JMenuItem runitem = new JMenuItem("Run");
+    private JMenu codemenu = new JMenu("Code");
+    private JMenuItem compileitem = new JMenuItem("Compile");
+    private JMenuItem runitem = new JMenuItem("Run");
 
     // fileio management
-    JFileChooser filechooser = new JFileChooser();
-    String path = "";
-    String parent_path = "";
-    String file_name = "";
-    String current_line;
+    private JFileChooser filechooser = new JFileChooser();
+    private String path = "";
+    private String parent_path = "";
+    private String file_name = "";
+    private String current_line;
 
     // actionListener stuff
     @Override
@@ -121,7 +121,7 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
     }
 
     // save file function
-    void saveFile() {
+    private void saveFile() {
         // if the path is not empty then we can save to the current file
         if (this.path != "") {
             try {
@@ -149,16 +149,18 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
     }
 
     // compile file, thank god for JavaCompiler
-    void compileFile() {
+    private void compileFile() {
         this.saveFile();
         if (this.path != "") {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             compiler.run(null, null, null, this.path);
+            System.out.println("% COMPILE COMPLETE %");
+            System.out.println("==================");
         }
     }
 
     // run file, you need to make sure you're compiling first
-    void runFile() {
+    private void runFile() {
         this.compileFile();
         if (this.path == "") {
             return;
@@ -186,6 +188,8 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
             outputStream.close();
         } catch (IOException | InterruptedException e) {
         }
+
+        System.out.println("==================");
     }
 
     // used for printing out the stream... if there are system.out.printlns we will
@@ -216,6 +220,7 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
         this.openitem.setMnemonic(KeyEvent.VK_O);
         this.openitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
         this.filemenu.add(saveitem);
+        this.saveitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
         this.saveitem.setMnemonic(KeyEvent.VK_S);
         this.filemenu.add(closeitem);
         this.closeitem.setMnemonic(KeyEvent.VK_C);
@@ -224,16 +229,20 @@ public class GarbageGeany implements ActionListener, UndoableEditListener {
         this.menubar.add(editmenu);
         this.editmenu.setMnemonic(KeyEvent.VK_E);
         this.editmenu.add(undoitem);
+        this.undoitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
         this.undoitem.setMnemonic(KeyEvent.VK_U);
         this.editmenu.add(redoitem);
+        this.redoitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK));
         this.undoitem.setMnemonic(KeyEvent.VK_R);
 
         // codemenu stuff
         this.menubar.add(codemenu);
         this.codemenu.setMnemonic(KeyEvent.VK_C);
         this.codemenu.add(compileitem);
+        this.compileitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, KeyEvent.CTRL_DOWN_MASK));
         this.compileitem.setMnemonic(KeyEvent.VK_E);
         this.codemenu.add(runitem);
+        runitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
         this.runitem.setMnemonic(KeyEvent.VK_R);
 
         // adding actionlisteners
