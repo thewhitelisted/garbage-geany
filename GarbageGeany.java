@@ -59,6 +59,11 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
     private JMenuItem compileitem = new JMenuItem("Compile");
     private JMenuItem runitem = new JMenuItem("Run");
 
+    // compile and run window
+    private JFrame outputframe = new JFrame("Output");
+    private JTextArea outputarea = new JTextArea();
+    private JScrollPane outputscroll = new JScrollPane(outputarea);
+
     // fileio management
     private JFileChooser filechooser = new JFileChooser();
     private String path = "";
@@ -209,11 +214,13 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
 
     // constructor
     GarbageGeany() {
-        // text pane
+        // text pane and output pane
         this.scroll.setPreferredSize(new Dimension(600, 600));
+        this.outputscroll.setPreferredSize(new Dimension(600, 600));
 
         // change tab size, I like it better like this
         this.textarea.setTabSize(2);
+        this.outputarea.setTabSize(2);
 
         // filemenu stuff
         this.menubar.add(filemenu);
@@ -267,6 +274,13 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
         this.frame.pack();
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.setVisible(true);
+
+        this.outputframe.setContentPane(outputscroll);
+        this.outputframe.setLocation(600, 0);
+        this.outputframe.pack();
+        this.outputframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.outputarea.setEditable(false);
+        this.outputframe.setVisible(true);
     }
 
     // main method
