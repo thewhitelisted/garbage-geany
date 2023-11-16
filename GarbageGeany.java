@@ -1,3 +1,5 @@
+// Garbage Geany created by Christopher Lee
+// #TODO: change output to a new JFrame instead of console.
 
 // imports
 import javax.swing.JFileChooser;
