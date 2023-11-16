@@ -1,5 +1,4 @@
 // Garbage Geany created by Christopher Lee
-// #TODO: change output to a new JFrame instead of console.
 
 // imports
 import javax.swing.JFileChooser;
@@ -25,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -39,8 +39,9 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
     private JTextArea textarea = new JTextArea();
     private JScrollPane scroll = new JScrollPane(textarea);
 
-    // menu bar
+    // menu bars
     private JMenuBar menubar = new JMenuBar();
+    private JMenuBar outputbar = new JMenuBar();
 
     // menu items relating to file
     private JMenu filemenu = new JMenu("File");
@@ -59,12 +60,22 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
     private JMenuItem compileitem = new JMenuItem("Compile");
     private JMenuItem runitem = new JMenuItem("Run");
 
+    // menu items relating to output window
+    private JMenu outputmenu = new JMenu("Output");
+    private JMenuItem clearoutputitem = new JMenuItem("Clear");
+
+    // compile and run window
+    private JFrame outputframe = new JFrame("Output");
+    private JTextArea outputarea = new JTextArea();
+    private JScrollPane outputscroll = new JScrollPane(outputarea);
+
     // fileio management
     private JFileChooser filechooser = new JFileChooser();
     private String path = "";
     private String parent_path = "";
     private String file_name = "";
     private String current_line;
+    private String compareoutput;
 
     // actionListener stuff
     @Override
@@ -113,6 +124,8 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
                 this.undoer.redo();
             } catch (CannotUndoException e) {
             }
+        } else if (evt.getSource() == this.clearoutputitem) {
+            this.outputarea.setText("");
         }
     }
 
@@ -154,17 +167,21 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
     private void compileFile() {
         this.saveFile();
         if (this.path != "") {
+            this.compareoutput = this.outputarea.getText();
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-            compiler.run(null, null, null, this.path);
-            System.out.println("% COMPILE COMPLETE %");
-            System.out.println("==================");
+            PrintStream compileoutput = new PrintStream(new TextAreaWriter(this.outputarea));
+            compiler.run(null, null, compileoutput, this.path);
+            this.outputarea.append("% COMPILE COMPLETE %\n");
+            this.outputarea.append("==================\n");
+            this.compareoutput += "% COMPILE COMPLETE %\n";
+            this.compareoutput += "==================\n";
         }
     }
 
     // run file, you need to make sure you're compiling first
     private void runFile() {
         this.compileFile();
-        if (this.path == "") {
+        if (this.path == "" || !this.outputarea.getText().equals(this.compareoutput)) {
             return;
         }
         ProcessBuilder runfile = new ProcessBuilder();
@@ -173,7 +190,8 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
             runfile.command("cmd.exe", "/c",
                     "java -cp " + parent_path + " " + file_name.substring(0, file_name.lastIndexOf(".java")));
         } else {
-            runfile.command("sh", "-c", "java -cp " + path);
+            runfile.command("sh", "-c",
+                    "java -cp " + parent_path + " " + file_name.substring(0, file_name.lastIndexOf(".java")));
         }
 
         // start the process and then close the stream when finished.
@@ -183,24 +201,24 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
             InputStream inputStream = process.getInputStream();
             InputStream errorStream = process.getErrorStream();
 
-            printStream(inputStream);
-            printStream(errorStream);
+            this.printStream(inputStream);
+            this.printStream(errorStream);
             process.waitFor();
             outputStream.flush();
             outputStream.close();
         } catch (IOException | InterruptedException e) {
         }
 
-        System.out.println("==================");
+        this.outputarea.append("==================\n");
     }
 
     // used for printing out the stream... if there are system.out.printlns we will
     // see them here.
-    private static void printStream(InputStream inputStream) {
+    private void printStream(InputStream inputStream) {
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                System.out.println(line);
+                this.outputarea.append(line + "\n");
             }
 
         } catch (IOException e) {
@@ -209,43 +227,50 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
 
     // constructor
     GarbageGeany() {
-        // text pane
+        // text pane and output pane
         this.scroll.setPreferredSize(new Dimension(600, 600));
+        this.outputscroll.setPreferredSize(new Dimension(600, 600));
 
         // change tab size, I like it better like this
         this.textarea.setTabSize(2);
+        this.outputarea.setTabSize(2);
 
         // filemenu stuff
-        this.menubar.add(filemenu);
+        this.menubar.add(this.filemenu);
         this.filemenu.setMnemonic(KeyEvent.VK_F);
-        this.filemenu.add(openitem);
+        this.filemenu.add(this.openitem);
         this.openitem.setMnemonic(KeyEvent.VK_O);
         this.openitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK));
-        this.filemenu.add(saveitem);
+        this.filemenu.add(this.saveitem);
         this.saveitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK));
         this.saveitem.setMnemonic(KeyEvent.VK_S);
-        this.filemenu.add(closeitem);
+        this.filemenu.add(this.closeitem);
         this.closeitem.setMnemonic(KeyEvent.VK_C);
 
         // editmenu stuff
-        this.menubar.add(editmenu);
+        this.menubar.add(this.editmenu);
         this.editmenu.setMnemonic(KeyEvent.VK_E);
-        this.editmenu.add(undoitem);
+        this.editmenu.add(this.undoitem);
         this.undoitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK));
         this.undoitem.setMnemonic(KeyEvent.VK_U);
-        this.editmenu.add(redoitem);
+        this.editmenu.add(this.redoitem);
         this.redoitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK));
         this.undoitem.setMnemonic(KeyEvent.VK_R);
 
         // codemenu stuff
-        this.menubar.add(codemenu);
+        this.menubar.add(this.codemenu);
         this.codemenu.setMnemonic(KeyEvent.VK_C);
-        this.codemenu.add(compileitem);
+        this.codemenu.add(this.compileitem);
         this.compileitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, KeyEvent.CTRL_DOWN_MASK));
         this.compileitem.setMnemonic(KeyEvent.VK_E);
-        this.codemenu.add(runitem);
-        runitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
+        this.codemenu.add(this.runitem);
+        this.runitem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
         this.runitem.setMnemonic(KeyEvent.VK_R);
+
+        // outputmenu stuff
+        this.outputbar.add(this.outputmenu);
+        this.outputmenu.setMnemonic(KeyEvent.VK_O);
+        this.outputmenu.add(this.clearoutputitem);
 
         // adding actionlisteners
         this.openitem.addActionListener(this);
@@ -258,15 +283,25 @@ final public class GarbageGeany implements ActionListener, UndoableEditListener 
         this.compileitem.addActionListener(this);
         this.runitem.addActionListener(this);
 
+        this.clearoutputitem.addActionListener(this);
+
         // undo listener
-        this.textarea.getDocument().addUndoableEditListener(undoer);
+        this.textarea.getDocument().addUndoableEditListener(this.undoer);
 
         // frame stuff
-        this.frame.setJMenuBar(menubar);
-        this.frame.setContentPane(scroll);
+        this.frame.setJMenuBar(this.menubar);
+        this.frame.setContentPane(this.scroll);
         this.frame.pack();
         this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.frame.setVisible(true);
+
+        this.outputframe.setJMenuBar(this.outputbar);
+        this.outputframe.setContentPane(this.outputscroll);
+        this.outputframe.setLocation(600, 0);
+        this.outputframe.pack();
+        this.outputframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.outputarea.setEditable(false);
+        this.outputframe.setVisible(true);
     }
 
     // main method
